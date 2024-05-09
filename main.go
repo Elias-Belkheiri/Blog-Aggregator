@@ -13,7 +13,11 @@ import (
 )
 
 type Test struct {
-	Val string
+	Status string `json:"status"`
+}
+
+type Err struct {
+	Err string `json:"error"`
 }
 
 func main() {
@@ -23,7 +27,9 @@ func main() {
 	}
 	
 	mux := http.NewServeMux()
-	mux.HandleFunc("/ids/*", getId)
+	mux.HandleFunc("GET /v1/ids/*", getId)
+	mux.HandleFunc("GET /v1/readiness", readAble)
+	mux.HandleFunc("GET /v1/err", errHandler)
 	
 	fmt.Println("Listening on port", os.Getenv("PORT"), "...")
 	log.Fatal(http.ListenAndServe(":" + os.Getenv("PORT"), mux))
@@ -39,6 +45,14 @@ func respondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
 	}
 
 	w.Write([]byte(response))
+}
+
+func readAble(w http.ResponseWriter, r *http.Request) {
+	respondWithJSON(w, 200, Test{Status: "ok"})
+}
+
+func errHandler(w http.ResponseWriter, r *http.Request) {
+	respondWithJSON(w, 500, Err{"Internal server error"})
 }
 
 func getId(w http.ResponseWriter, r *http.Request) {
