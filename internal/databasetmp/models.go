@@ -5,14 +5,12 @@
 package database
 
 import (
-	"database/sql"
 	"time"
 )
 
 type User struct {
-	ID        string
+	ID        int32
 	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	Apikey    sql.NullString
 }

@@ -2,18 +2,23 @@ package main
 
 import (
 	// "database/sql"
+	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"internal/database"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
-	"io"
-	"context"
-	"github.com/joho/godotenv"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	// "github.com/lib/pq"
 )
@@ -29,7 +34,6 @@ type Err struct {
 type apiConfig struct {
 	DB *database.Queries
 }
-
 
 func main() {
 	err := godotenv.Load()
@@ -48,14 +52,18 @@ func main() {
 	dbQueries := database.New(db)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("POST /v1/users", func (w http.ResponseWriter, r *http.Request) {
-		addUser(w, r, dbQueries, ctx) })
+	mux.HandleFunc("POST /v1/users", func(w http.ResponseWriter, r *http.Request) {
+		addUser(w, r, dbQueries, ctx)
+	})
+	mux.HandleFunc("GET /v1/users", func(w http.ResponseWriter, r *http.Request) {
+		getUser(w, r, dbQueries, ctx)
+	})
 	mux.HandleFunc("GET /v1/ids/*", getId)
 	mux.HandleFunc("GET /v1/readiness", readAble)
 	// mux.HandleFunc("GET /v1/err", errHandler)
-	
+
 	fmt.Println("Listening on port", os.Getenv("PORT"), "...")
-	log.Fatal(http.ListenAndServe(":" + os.Getenv("PORT"), mux))
+	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), mux))
 }
 
 func respondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
@@ -79,22 +87,22 @@ func errHandler(w http.ResponseWriter, r *http.Request, err int, description str
 }
 
 func getId(w http.ResponseWriter, r *http.Request) {
-		uri, err := url.Parse(r.RequestURI)
-		
-		if err != nil {
-			fmt.Println("Err parsing uri")
-		}
-	
-		id, err := strconv.Atoi(uri.Path[len("/ids/"):])
-		if err != nil {
-			fmt.Println("err casting id to int")
-		}
-		fmt.Printf("id: -%d-", id)
-		if id > 10 {
-			respondWithJSON(w, 200, Test{"All good :)"}) 
-		} else {
-			respondWithJSON(w, 404, Test{"Not found :("})
-		}
+	uri, err := url.Parse(r.RequestURI)
+
+	if err != nil {
+		fmt.Println("Err parsing uri")
+	}
+
+	id, err := strconv.Atoi(uri.Path[len("/ids/"):])
+	if err != nil {
+		fmt.Println("err casting id to int")
+	}
+	fmt.Printf("id: -%d-", id)
+	if id > 10 {
+		respondWithJSON(w, 200, Test{"All good :)"})
+	} else {
+		respondWithJSON(w, 404, Test{"Not found :("})
+	}
 }
 
 func addUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
@@ -114,6 +122,8 @@ func addUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 		return
 	}
 
+	user.ID = uuid.New().String()
+	user.CreatedAt = time.Now()
 	userCreated, err := dbQueries.CreateUser(ctx, user)
 	if err != nil {
 		fmt.Println("Err creating user")
@@ -128,4 +138,52 @@ func addUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 		return
 	}
 	w.Write(userJson)
+}
+
+func getUsers(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
+	users, err := dbQueries.GetUsers(ctx)
+	if err != nil {
+		fmt.Println("Err getting users")
+		errHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	resp, err := json.Marshal(users)
+	if err != nil {
+		fmt.Println("Err marshaling users")
+		errHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	w.Write(resp)
+}
+
+func getUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
+	// var user database.User
+
+	authHeader := strings.Split(r.Header["Authorization"][0], " ")
+	if len(authHeader) != 2 || authHeader[0] != "ApiKey" {
+		fmt.Println("Invalid Auth header")
+		errHandler(w, r, http.StatusUnauthorized, "Invalid Auth header")
+		return
+	}
+
+	user, err := dbQueries.GetUser(ctx, sql.NullString{authHeader[1], true})
+	if err != nil {
+		fmt.Println("Err getting user")
+		errHandler(w, r, http.StatusNotFound, "User not found")
+		return
+	}
+
+	userRetrieved, err := json.Marshal(user)
+	if err != nil {
+		fmt.Println("Err marshaling user")
+		errHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		return
+	}
+
+	fmt.Println(authHeader[1])
+	fmt.Println(userRetrieved)
+
+	w.Write(userRetrieved)
 }
