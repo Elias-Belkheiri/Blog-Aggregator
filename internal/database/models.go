@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+type Feed struct {
+	ID        string
+	Name      string
+	Url       sql.NullString
+	UserID    sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 type User struct {
 	ID        string
 	Name      string
