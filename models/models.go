@@ -19,6 +19,6 @@ type ApiConfig struct {
 	DB *database.Queries
 }
 
-func (cfg *ApiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
-    ///
-}
+// func (cfg *ApiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
+//     ///
+// }

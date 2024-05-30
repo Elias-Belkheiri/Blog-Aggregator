@@ -94,7 +94,14 @@ func GetUsers(w http.ResponseWriter, r *http.Request, dbQueries *database.Querie
 func GetUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
 	// var user database.User
 
-	authHeader := strings.Split(r.Header["Authorization"][0], " ")
+	val, ok := r.Header["Authorization"]
+	if !ok {
+		fmt.Println("Missing Auth header")
+		utils.ErrHandler(w, r, http.StatusUnauthorized, "Missing Auth header")
+		return
+	}
+	
+	authHeader := strings.Split(val[0], " ")
 	if len(authHeader) != 2 || authHeader[0] != "ApiKey" {
 		fmt.Println("Invalid Auth header")
 		utils.ErrHandler(w, r, http.StatusUnauthorized, "Invalid Auth header")
@@ -115,8 +122,8 @@ func GetUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 		return
 	}
 
-	fmt.Println(authHeader[1])
-	fmt.Println(userRetrieved)
+	// fmt.Println(authHeader[1])
+	// fmt.Println(userRetrieved)
 
 	w.Write(userRetrieved)
 }

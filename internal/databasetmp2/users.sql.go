@@ -11,25 +11,59 @@ import (
 	"time"
 )
 
+const createFeed = `-- name: CreateFeed :one
+INSERT INTO feeds (id, name, url, user_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, url, user_id, created_at, updated_at
+`
+
+type CreateFeedParams struct {
+	ID        string
+	Name      string
+	Url       sql.NullString
+	UserID    sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, createFeed,
+		arg.ID,
+		arg.Name,
+		arg.Url,
+		arg.UserID,
+		arg.CreatedAt,
+		arg.UpdatedAt,
+	)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Url,
+		&i.UserID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, name, created_at, updated_at, apikey)
+INSERT INTO users (id, created_at, updated_at, apikey,  name)
 VALUES ($1, $2, $3, $4, encode(sha256(random()::text::bytea), 'hex'))
 RETURNING id, name, created_at, updated_at, apikey
 `
 
 type CreateUserParams struct {
 	ID        string
-	Name      string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+	Apikey    sql.NullString
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.ID,
-		arg.Name,
 		arg.CreatedAt,
 		arg.UpdatedAt,
+		arg.Apikey,
 	)
 	var i User
 	err := row.Scan(

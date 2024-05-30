@@ -21,7 +21,7 @@ func main() {
 
 	ctx := context.Background()
 
-	db, err := sqlx.Connect("postgres", "user=hmeda dbname=blogy sslmode=disable password=password host=localhost")
+	db, err := sqlx.Connect("postgres", "user=user dbname=db sslmode=disable password=password host=localhost")
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -32,6 +32,9 @@ func main() {
 		controllers.AddUser(w, r, dbQueries, ctx)
 	})
 	mux.HandleFunc("GET /v1/users", func(w http.ResponseWriter, r *http.Request) {
+		controllers.GetUsers(w, r, dbQueries, ctx)
+	})
+	mux.HandleFunc("GET /v1/user", func(w http.ResponseWriter, r *http.Request) {
 		controllers.GetUser(w, r, dbQueries, ctx)
 	})
 	mux.HandleFunc("GET /v1/ids/*", controllers.GetId)
