@@ -3,7 +3,7 @@ package controllers
 import (
 	// "database/sql"
 	"context"
-	"database/sql"
+	// "database/sql"
 	"encoding/json"
 	"fmt"
 	"internal/database"
@@ -12,9 +12,9 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"strings"
+	// "strings"
 	"time"
-	"github.com/Elias-Belkheiri/blog_aggregator/models"
+	// "github.com/Elias-Belkheiri/blog_aggregator/models"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
@@ -32,9 +32,9 @@ func GetId(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("id: -%d-", id)
 	if id > 10 {
-		utils.RespondWithJSON(w, 200, models.Test{"All good :)"})
+		utils.RespondWithJSON(w, 200, utils.Test{"All good :)"})
 	} else {
-		utils.RespondWithJSON(w, 404, models.Test{"Not found :("})
+		utils.RespondWithJSON(w, 404, utils.Test{"Not found :("})
 	}
 }
 
@@ -91,39 +91,12 @@ func GetUsers(w http.ResponseWriter, r *http.Request, dbQueries *database.Querie
 	w.Write(resp)
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
-	// var user database.User
-
-	val, ok := r.Header["Authorization"]
-	if !ok {
-		fmt.Println("Missing Auth header")
-		utils.ErrHandler(w, r, http.StatusUnauthorized, "Missing Auth header")
-		return
-	}
-	
-	authHeader := strings.Split(val[0], " ")
-	if len(authHeader) != 2 || authHeader[0] != "ApiKey" {
-		fmt.Println("Invalid Auth header")
-		utils.ErrHandler(w, r, http.StatusUnauthorized, "Invalid Auth header")
-		return
-	}
-
-	user, err := dbQueries.GetUser(ctx, sql.NullString{authHeader[1], true})
-	if err != nil {
-		fmt.Println("Err getting user")
-		utils.ErrHandler(w, r, http.StatusNotFound, "User not found")
-		return
-	}
-
+func GetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	userRetrieved, err := json.Marshal(user)
 	if err != nil {
 		fmt.Println("Err marshaling user")
 		utils.ErrHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
 		return
 	}
-
-	// fmt.Println(authHeader[1])
-	// fmt.Println(userRetrieved)
-
 	w.Write(userRetrieved)
 }

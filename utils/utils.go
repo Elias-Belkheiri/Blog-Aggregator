@@ -3,15 +3,15 @@ package utils
 import (
 	"encoding/json"
 	"net/http"
-	"github.com/Elias-Belkheiri/blog_aggregator/models"
+	// "github.com/Elias-Belkheiri/blog_aggregator/models"
 )
 
 func ReadAble(w http.ResponseWriter, r *http.Request) {
-	RespondWithJSON(w, 200, models.Test{Status: "ok"})
+	RespondWithJSON(w, 200, Test{Status: "ok"})
 }
 
 func ErrHandler(w http.ResponseWriter, r *http.Request, err int, description string) {
-	RespondWithJSON(w, err, models.Err{description})
+	RespondWithJSON(w, err, Err{description})
 }
 
 func RespondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
@@ -24,4 +24,12 @@ func RespondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
 	}
 
 	w.Write([]byte(response))
+}
+
+type Test struct {
+	Status string `json:"status"`
+}
+
+type Err struct {
+	Err string `json:"error"`
 }
