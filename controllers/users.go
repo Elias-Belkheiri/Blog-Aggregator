@@ -57,6 +57,7 @@ func AddUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 
 	user.ID = uuid.New().String()
 	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
 	userCreated, err := dbQueries.CreateUser(ctx, user)
 	if err != nil {
 		fmt.Println("Err creating user")
