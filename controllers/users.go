@@ -38,37 +38,44 @@ func GetId(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func AddUserHandler(dbQueries *database.Queries, ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		AddUser(w, r, dbQueries, ctx)
+	}
+}
+
 func AddUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
 	var user database.CreateUserParams
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
 		fmt.Println("Err reading request body")
-		utils.ErrHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
 
 	err = json.Unmarshal(body, &user)
 	if err != nil {
 		fmt.Println("Err unmarshaling request body")
-		utils.ErrHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
 
+	// check if the user.name is invalid
 	user.ID = uuid.New().String()
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 	userCreated, err := dbQueries.CreateUser(ctx, user)
 	if err != nil {
 		fmt.Println("Err creating user")
-		utils.ErrHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
 
 	userJson, err := json.Marshal(userCreated)
 	if err != nil {
 		fmt.Println("Err marshaling user")
-		utils.ErrHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
 	w.Write(userJson)
@@ -78,14 +85,14 @@ func GetUsers(w http.ResponseWriter, r *http.Request, dbQueries *database.Querie
 	users, err := dbQueries.GetUsers(ctx)
 	if err != nil {
 		fmt.Println("Err getting users")
-		utils.ErrHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
 
 	resp, err := json.Marshal(users)
 	if err != nil {
 		fmt.Println("Err marshaling users")
-		utils.ErrHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
 
@@ -96,7 +103,7 @@ func GetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	userRetrieved, err := json.Marshal(user)
 	if err != nil {
 		fmt.Println("Err marshaling user")
-		utils.ErrHandler(w, r, http.StatusInternalServerError, "Internal Server Error")
+		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
 	w.Write(userRetrieved)

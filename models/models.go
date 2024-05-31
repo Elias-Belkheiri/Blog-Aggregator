@@ -21,21 +21,21 @@ func MiddlewareAuth(handler AuthedHandler, ctx context.Context, db *database.Que
 		val, ok := r.Header["Authorization"]
 		if !ok {
 			fmt.Println("Missing Auth header")
-			utils.ErrHandler(w, r, http.StatusUnauthorized, "Missing Auth header")
+			utils.ErrHandler(w, 400, "Missing Auth header")
 			return
 		}
 		
 		authHeader := strings.Split(val[0], " ")
 		if len(authHeader) != 2 || authHeader[0] != "ApiKey" {
 			fmt.Println("Invalid Auth header")
-			utils.ErrHandler(w, r, http.StatusUnauthorized, "Invalid Auth header")
+			utils.ErrHandler(w, 401, "Invalid Auth header")
 			return
 		}
 	
 		user, err := db.GetUser(ctx, sql.NullString{authHeader[1], true})
 		if err != nil {
 			fmt.Println("Err getting user")
-			utils.ErrHandler(w, r, http.StatusNotFound, "User not authorized")
+			utils.ErrHandler(w, 401, "User not authorized")
 			return
 		}
 

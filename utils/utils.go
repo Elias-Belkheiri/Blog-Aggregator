@@ -10,7 +10,7 @@ func ReadAble(w http.ResponseWriter, r *http.Request) {
 	RespondWithJSON(w, 200, Test{Status: "ok"})
 }
 
-func ErrHandler(w http.ResponseWriter, r *http.Request, err int, description string) {
+func ErrHandler(w http.ResponseWriter, err int, description string) {
 	RespondWithJSON(w, err, Err{description})
 }
 

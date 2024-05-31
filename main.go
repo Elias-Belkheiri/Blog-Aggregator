@@ -14,8 +14,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	// "google.golang.org/genproto/googleapis/api"
-	// "github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -32,17 +30,18 @@ func main() {
 		log.Fatalln(err)
 	}
 
-
 	dbQueries := database.New(db)
 
-	mux := http.NewServeMux()
-	r.Get("/v1/user", models.MiddlewareAuth(controllers.GetUser, ctx, dbQueries))
+	// mux := http.NewServeMux()
+	r.Get("/v1/users", models.MiddlewareAuth(controllers.GetUser, ctx, dbQueries))
+	r.Post("/v1/users", controllers.AddUserHandler(dbQueries, ctx))
+	r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
 	// mux.HandleFunc("POST /v1/users", func(w http.ResponseWriter, r *http.Request) {
 	// 	controllers.AddUser(w, r, dbQueries, ctx)
 	// })
-	mux.HandleFunc("GET /v1/users", func(w http.ResponseWriter, r *http.Request) {
-		controllers.GetUsers(w, r, dbQueries, ctx)
-	})
+	// mux.HandleFunc("GET /v1/users", func(w http.ResponseWriter, r *http.Request) {
+	// 	controllers.GetUsers(w, r, dbQueries, ctx)
+	// })
 	// mux.HandleFunc("GET /v1/user", func(w http.ResponseWriter, r *http.Request) {
 	// 	controllers.GetUser(w, r, dbQueries, ctx)
 	// })
