@@ -10,7 +10,7 @@ import (
 	"github.com/Elias-Belkheiri/blog_aggregator/utils"
 )
 
-type AuthedHandler func(http.ResponseWriter, *http.Request, database.User)
+type AuthedHandler func(w http.ResponseWriter, r *http.Request, user database.User, dbQueries *database.Queries, ctx context.Context)
 
 type ApiConfig struct {
 	DB *database.Queries
@@ -39,6 +39,6 @@ func MiddlewareAuth(handler AuthedHandler, ctx context.Context, db *database.Que
 			return
 		}
 
-		handler(w, r, user)
+		handler(w, r, user, db, ctx)
 	}
 }

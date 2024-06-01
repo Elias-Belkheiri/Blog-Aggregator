@@ -99,7 +99,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request, dbQueries *database.Querie
 	w.Write(resp)
 }
 
-func GetUser(w http.ResponseWriter, r *http.Request, user database.User) {
+func GetUser(w http.ResponseWriter, r *http.Request, user database.User, dbQueries *database.Queries, ctx context.Context) {
 	userRetrieved, err := json.Marshal(user)
 	if err != nil {
 		fmt.Println("Err marshaling user")

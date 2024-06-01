@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"fmt"
@@ -8,12 +9,13 @@ import (
 	"io"
 	"net/http"
 	"time"
+
 	"github.com/Elias-Belkheiri/blog_aggregator/utils"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
-func AddFeed(w http.ResponseWriter, r *http.Request, user database.User) {
+func AddFeed(w http.ResponseWriter, r *http.Request, user database.User, dbQueries *database.Queries, ctx context.Context) {
 	var feed database.CreateFeedParams
 	body, err := io.ReadAll(r.Body)
 
@@ -40,13 +42,37 @@ func AddFeed(w http.ResponseWriter, r *http.Request, user database.User) {
 	feed.UpdatedAt = time.Now()
 	feed.UserID = sql.NullString{String: user.ID, Valid: true}
 
-	feedCreated, err := json.Marshal(feed)
+	feedCreated, err := dbQueries.CreateFeed(ctx, feed)
+	if err != nil {
+		fmt.Println("Err creating feed")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
+
+	feedJson, err := json.Marshal(feedCreated)
 	if err != nil {
 		fmt.Println("Err marshaling feed")
 		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
-	w.Write(feedCreated)
-	// utils.RespondWithJSON(w, 200, )
-	// w.Write(feedRetrieved)
+	w.Write(feedJson)
+}
+
+func GetFeeds(dbQueries *database.Queries, ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		feeds, err := dbQueries.GetFeeds(ctx)
+	
+		if err != nil {
+			fmt.Println("Err retrieving feeds")
+			utils.ErrHandler(w, 500, "Internal Server Error")
+		}
+	
+		feedsRetrievd, err := json.Marshal(feeds)
+		if err != nil {
+			fmt.Println("Err marshaling feeds")
+			utils.ErrHandler(w, 500, "Internal Server Error")
+		}
+	
+		w.Write(feedsRetrievd)
+	}
 }
