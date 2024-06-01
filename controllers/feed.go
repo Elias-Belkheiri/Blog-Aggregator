@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"context"
-	"database/sql"
+	// "database/sql"
 	"encoding/json"
 	"fmt"
 	"internal/database"
@@ -40,7 +40,7 @@ func AddFeed(w http.ResponseWriter, r *http.Request, user database.User, dbQueri
 	feed.ID = uuid.New().String()
 	feed.CreatedAt = time.Now()
 	feed.UpdatedAt = time.Now()
-	feed.UserID = sql.NullString{String: user.ID, Valid: true}
+	// feed.UserID = sql.NullString{String: user.ID, Valid: true}
 
 	feedCreated, err := dbQueries.CreateFeed(ctx, feed)
 	if err != nil {

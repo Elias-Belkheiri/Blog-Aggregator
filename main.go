@@ -35,8 +35,10 @@ func main() {
 	// mux := http.NewServeMux()
 	r.Get("/v1/users", models.MiddlewareAuth(controllers.GetUser, ctx, dbQueries))
 	r.Post("/v1/users", controllers.AddUserHandler(dbQueries, ctx))
+
 	r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
 	r.Get("/v1/feeds", controllers.GetFeeds(dbQueries, ctx))
+	r.Post("/v1/feedFollows", models.MiddlewareAuth(controllers.AddFeedFollows, ctx, dbQueries))
 	// mux.HandleFunc("POST /v1/users", func(w http.ResponseWriter, r *http.Request) {
 	// 	controllers.AddUser(w, r, dbQueries, ctx)
 	// })

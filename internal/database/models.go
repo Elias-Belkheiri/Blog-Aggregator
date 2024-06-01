@@ -13,7 +13,14 @@ type Feed struct {
 	ID        string
 	Name      string
 	Url       sql.NullString
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type Feedfollow struct {
+	ID        string
 	UserID    sql.NullString
+	FeedID    sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

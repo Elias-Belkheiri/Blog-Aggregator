@@ -12,14 +12,13 @@ import (
 )
 
 const createFeed = `-- name: CreateFeed :one
-INSERT INTO feeds (id, name, url, user_id, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, url, user_id, created_at, updated_at
+INSERT INTO feeds (id, name, url, created_at, updated_at) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, url, created_at, updated_at
 `
 
 type CreateFeedParams struct {
 	ID        string
 	Name      string
 	Url       sql.NullString
-	UserID    sql.NullString
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -29,7 +28,6 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		arg.ID,
 		arg.Name,
 		arg.Url,
-		arg.UserID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
@@ -38,7 +36,6 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		&i.ID,
 		&i.Name,
 		&i.Url,
-		&i.UserID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -46,7 +43,7 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 }
 
 const getFeeds = `-- name: GetFeeds :many
-SELECT id, name, url, user_id, created_at, updated_at FROM feeds
+SELECT id, name, url, created_at, updated_at FROM feeds
 `
 
 func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
@@ -62,7 +59,6 @@ func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
 			&i.ID,
 			&i.Name,
 			&i.Url,
-			&i.UserID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
