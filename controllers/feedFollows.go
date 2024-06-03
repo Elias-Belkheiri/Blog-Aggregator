@@ -8,12 +8,29 @@ import (
 	"internal/database"
 	"io"
 	"net/http"
+	"strings"
 	"time"
-
 	"github.com/Elias-Belkheiri/blog_aggregator/utils"
 	"github.com/google/uuid"
 )
 
+func GetUserFeedFollows(w http.ResponseWriter, r *http.Request, user database.User, dbQueries *database.Queries, ctx context.Context) {
+	userFeedFollows, err := dbQueries.GetUserFeedFollows(ctx, sql.NullString{user.ID, true})
+
+	if err != nil {
+		fmt.Println("Err getting feedFollows")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
+
+	feedFollows, err := json.Marshal(userFeedFollows)
+	if err != nil {
+		fmt.Println("Err marshaling feedFollows")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
+	w.Write(feedFollows)
+}
 
 func AddFeedFollows(w http.ResponseWriter, r *http.Request, user database.User, dbQueries *database.Queries, ctx context.Context) {
 	var extractedFeedFollow database.CreateFeedFollowsParams
@@ -57,4 +74,24 @@ func AddFeedFollows(w http.ResponseWriter, r *http.Request, user database.User, 
 		return
 	}
 	w.Write(feedFollows)
+}
+
+func RemoveFeedFollows(w http.ResponseWriter, r *http.Request, user database.User, dbQueries *database.Queries, ctx context.Context) {
+	pathParts := strings.Split(r.URL.Path, "/")
+	feedFollowID := pathParts[3]
+
+	feedFollowDeleted, err := dbQueries.DeleteFeedFollows(ctx, feedFollowID)
+	if err != nil {
+		fmt.Println("Err deleting feedFollow")
+		utils.ErrHandler(w, 500, "Err deleting feedFollow")
+		return
+	}
+
+	feedFollowJson, err := json.Marshal(feedFollowDeleted)
+	if err != nil {
+		fmt.Println("Err marshaling feedFollowDeleted")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
+	w.Write(feedFollowJson)
 }

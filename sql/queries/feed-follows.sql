@@ -4,3 +4,10 @@ INSERT INTO feedFollows (id, user_id, feed_id, created_at, updated_at) VALUES ($
 
 -- name: GetFeedFollows :many
 SELECT * FROM feedFollows;
+
+-- name: DeleteFeedFollows :one
+DELETE FROM feedFollows WHERE id = $1 RETURNING *;
+
+-- name: GetUserFeedFollows :many
+
+SELECT * FROM feedFollows WHERE user_id = $1;

@@ -39,6 +39,8 @@ func main() {
 	r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
 	r.Get("/v1/feeds", controllers.GetFeeds(dbQueries, ctx))
 	r.Post("/v1/feedFollows", models.MiddlewareAuth(controllers.AddFeedFollows, ctx, dbQueries))
+	r.Delete("/v1/feedFollows/{feedFollowsID}", models.MiddlewareAuth(controllers.RemoveFeedFollows, ctx, dbQueries))
+	// r.Get("/v1/feed_follows")
 	// mux.HandleFunc("POST /v1/users", func(w http.ResponseWriter, r *http.Request) {
 	// 	controllers.AddUser(w, r, dbQueries, ctx)
 	// })
@@ -55,4 +57,3 @@ func main() {
 	fmt.Println("Listening on port", os.Getenv("PORT"), "...")
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), r))
 }
-
