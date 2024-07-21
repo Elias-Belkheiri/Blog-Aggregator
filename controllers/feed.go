@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"context"
-	// "database/sql"
+	"database/sql"
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"internal/database"
 	"io"
@@ -15,8 +16,38 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type RSSFeed struct {
+	XMLName xml.Name `xml:"rss"`
+	Channel Channel  `xml:"channel"`
+}
+
+type Channel struct {
+	XMLName       xml.Name  `xml:"channel"`
+	Title         string    `xml:"title"`
+	Description   string    `xml:"description"`
+	Link          string    `xml:"link"`
+	LastBuildDate string    `xml:"lastBuildDate"`
+	Items         []Item    `xml:"item"`
+}
+
+// Item represents an individual item in the RSS feed
+type Item struct {
+	XMLName     xml.Name `xml:"item"`
+	Title       string   `xml:"title"`
+	Description string   `xml:"description"`
+	Link        string   `xml:"link"`
+	PubDate     string   `xml:"pubDate"`
+}
+
+type FeedData struct {
+	Feed       database.Feed       	`json:"feed"`
+	FeedFollow database.Feedfollow 	`json:"feed_follow"`
+}
+
 func AddFeed(w http.ResponseWriter, r *http.Request, user database.User, dbQueries *database.Queries, ctx context.Context) {
 	var feed database.CreateFeedParams
+	var feedFollow database.CreateFeedFollowsParams
+
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
@@ -49,7 +80,20 @@ func AddFeed(w http.ResponseWriter, r *http.Request, user database.User, dbQueri
 		return
 	}
 
-	feedJson, err := json.Marshal(feedCreated)
+	feedFollow.ID = uuid.New().String()
+	feedFollow.CreatedAt = time.Now()
+	feedFollow.UpdatedAt = time.Now()
+	feedFollow.UserID = sql.NullString{user.ID, true}
+	feedFollow.FeedID = sql.NullString{feed.ID, true}
+
+	feedFollowsCreated, err := dbQueries.CreateFeedFollows(ctx, feedFollow)
+	if err != nil {
+		fmt.Println("Err creating feedFollows")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
+
+	feedJson, err := json.Marshal(FeedData{feedCreated, feedFollowsCreated})
 	if err != nil {
 		fmt.Println("Err marshaling feed")
 		utils.ErrHandler(w, 500, "Internal Server Error")
@@ -74,5 +118,39 @@ func GetFeeds(dbQueries *database.Queries, ctx context.Context) http.HandlerFunc
 		}
 	
 		w.Write(feedsRetrievd)
+	}
+}
+
+func FetchFeed(url string) {
+	resp, err := http.Get(url)
+
+	if err != nil {
+		fmt.Println("Err fetching feed")
+		return
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Err reading the feed body")
+		return
+	}
+
+	var rss RSSFeed
+	err = xml.Unmarshal(body, &rss)
+	if err != nil {
+		fmt.Printf("Error parsing the XML: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Title: %s\n", rss.Channel.Title)
+	fmt.Printf("Description: %s\n", rss.Channel.Description)
+	fmt.Printf("Link: %s\n", rss.Channel.Link)
+	fmt.Printf("Last Build Date: %s\n", rss.Channel.LastBuildDate)
+	fmt.Println("Items:")
+	for _, item := range rss.Channel.Items {
+		fmt.Printf("  - Title: %s\n", item.Title)
+		fmt.Printf("    Description: %s\n", item.Description)
+		fmt.Printf("    Link: %s\n", item.Link)
+		fmt.Printf("    PubDate: %s\n", item.PubDate)
 	}
 }
