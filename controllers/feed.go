@@ -154,3 +154,4 @@ func FetchFeed(url string) {
 		fmt.Printf("    PubDate: %s\n", item.PubDate)
 	}
 }
+
