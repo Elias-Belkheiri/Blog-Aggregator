@@ -1,0 +1,12 @@
+-- +goose up
+CREATE TABLE Posts (
+    id SERIAL PRIMARY KEY,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    title TEXT NOT NULL,
+    url TEXT UNIQUE NOT NULL,
+    description TEXT,
+    published_at TIMESTAMP WITH TIME ZONE,
+    feed_id TEXT NOT NULL,
+    FOREIGN KEY (feed_id) REFERENCES feeds(id)
+);
