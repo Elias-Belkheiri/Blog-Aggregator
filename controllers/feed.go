@@ -153,5 +153,25 @@ func FetchFeed(url string) {
 		fmt.Printf("    Link: %s\n", item.Link)
 		fmt.Printf("    PubDate: %s\n", item.PubDate)
 	}
+	fmt.Println("----------------------------------------------------------------------------------------------")
 }
 
+func LoopAndFetch(dbQueries *database.Queries, ctx context.Context) {
+	var feeds []database.Feed
+	var err error
+
+	for {
+		feeds, err = dbQueries.GetNextFeedsToFetch(ctx)
+	
+		if err != nil {
+			fmt.Println("Err getting next feeds to fetch")
+			return
+		}
+	
+		for _, feed := range feeds {
+			FetchFeed(feed.Url.String)
+		}
+	
+		time.Sleep(4 * time.Second)
+	}
+}

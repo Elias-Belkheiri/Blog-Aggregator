@@ -68,6 +68,10 @@ func AddUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 	userCreated, err := dbQueries.CreateUser(ctx, user)
 	if err != nil {
 		fmt.Println("Err creating user")
+		fmt.Println(user.Name)
+		fmt.Println(user.ID)
+		fmt.Println(user.CreatedAt)
+		fmt.Println(user.UpdatedAt)
 		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}

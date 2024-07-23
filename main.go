@@ -17,29 +17,30 @@ import (
 )
 
 func main() {
+	r := chi.NewRouter()
+	ctx := context.Background()
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	r := chi.NewRouter()
-	ctx := context.Background()
 
-	db, err := sqlx.Connect("postgres", "user=user dbname=db sslmode=disable password=password host=localhost")
+	db, err := sqlx.Connect("postgres", "user=user dbname=db sslmode=disable password=password host=localhost port=5432")
 	if err != nil {
 		log.Fatalln(err)
 	}
 
 	dbQueries := database.New(db)
-
-	// mux := http.NewServeMux()
+	
 	r.Get("/v1/users", models.MiddlewareAuth(controllers.GetUser, ctx, dbQueries))
 	r.Post("/v1/users", controllers.AddUserHandler(dbQueries, ctx))
-
+	
 	r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
 	r.Get("/v1/feeds", controllers.GetFeeds(dbQueries, ctx))
-	r.Post("/v1/feedFollows", models.MiddlewareAuth(controllers.AddFeedFollows, ctx, dbQueries))
-	r.Delete("/v1/feedFollows/{feedFollowsID}", models.MiddlewareAuth(controllers.RemoveFeedFollows, ctx, dbQueries))
+
+	go controllers.LoopAndFetch(dbQueries, ctx)
+// 	r.Post("/v1/feedFollows", models.MiddlewareAuth(controllers.AddFeedFollows, ctx, dbQueries))
+// 	r.Delete("/v1/feedFollows/{feedFollowsID}", models.MiddlewareAuth(controllers.RemoveFeedFollows, ctx, dbQueries))
 	// r.Get("/v1/feed_follows")
 	// mux.HandleFunc("POST /v1/users", func(w http.ResponseWriter, r *http.Request) {
 	// 	controllers.AddUser(w, r, dbQueries, ctx)
@@ -58,8 +59,4 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+os.Getenv("PORT"), r))
 }
 
-
-// func main() {
-// 	// controllers.FetchFeed("https://techcrunch.com/feed/")
-// 	controllers.FetchFeed("https://www.wired.com/feed/rss")
-// }
+// ApiKey 184516fe242f3c28d4dfa9b10860d72e428411d42ea92c2179255e0dd1bdd712
