@@ -170,20 +170,20 @@ func LoopAndFetch(dbQueries *database.Queries, ctx context.Context) {
 	var err error
 
 	for {
-		feeds, err = dbQueries.GetNextFeedsToFetch(ctx)
+		feeds, err = dbQueries.GetNextFeedsToFetch(ctx, 10)
 		if err != nil {
 			fmt.Println("Err getting next feeds to fetch")
 			return
 		}
 
-		_, err := dbQueries.MarkFeedAsFetched(ctx)
-		if err != nil {
-			fmt.Println("Err marking feeds as fetched")
-			return
-		}
-	
+		
 		for _, feed := range feeds {
 			FetchFeed(feed.Url.String, feed.ID, dbQueries, ctx)
+			_, err := dbQueries.MarkFeedAsFetched(ctx, feed.ID)
+			if err != nil {
+				fmt.Println("Err marking feeds as fetched")
+				return
+			}
 		}
 	
 		time.Sleep(4 * time.Second)
