@@ -38,7 +38,8 @@ func main() {
 	r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
 	r.Get("/v1/feeds", controllers.GetFeeds(dbQueries, ctx))
 
-	go controllers.LoopAndFetch(dbQueries, ctx)
+	// go controllers.LoopAndFetch(dbQueries, ctx)
+
 // 	r.Post("/v1/feedFollows", models.MiddlewareAuth(controllers.AddFeedFollows, ctx, dbQueries))
 // 	r.Delete("/v1/feedFollows/{feedFollowsID}", models.MiddlewareAuth(controllers.RemoveFeedFollows, ctx, dbQueries))
 	// r.Get("/v1/feed_follows")

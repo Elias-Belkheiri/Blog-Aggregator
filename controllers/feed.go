@@ -121,7 +121,7 @@ func GetFeeds(dbQueries *database.Queries, ctx context.Context) http.HandlerFunc
 	}
 }
 
-func FetchFeed(url string) {
+func FetchFeed(url string, feed_id string, dbQueries *database.Queries, ctx context.Context) {
 	resp, err := http.Get(url)
 
 	if err != nil {
@@ -142,16 +142,25 @@ func FetchFeed(url string) {
 		return
 	}
 
-	fmt.Printf("Title: %s\n", rss.Channel.Title)
-	fmt.Printf("Description: %s\n", rss.Channel.Description)
-	fmt.Printf("Link: %s\n", rss.Channel.Link)
-	fmt.Printf("Last Build Date: %s\n", rss.Channel.LastBuildDate)
-	fmt.Println("Items:")
+	// fmt.Printf("Title: %s\n", rss.Channel.Title)
+	// fmt.Printf("Description: %s\n", rss.Channel.Description)
+	// fmt.Printf("Link: %s\n", rss.Channel.Link)
+	// fmt.Printf("Last Build Date: %s\n", rss.Channel.LastBuildDate)
+	// fmt.Println("Items:")
 	for _, item := range rss.Channel.Items {
-		fmt.Printf("  - Title: %s\n", item.Title)
-		fmt.Printf("    Description: %s\n", item.Description)
-		fmt.Printf("    Link: %s\n", item.Link)
-		fmt.Printf("    PubDate: %s\n", item.PubDate)
+		t, err := time.Parse(item.PubDate, time.RFC3339)
+		if err != nil {
+			fmt.Println("Err parsing time")
+			return
+		}
+		_, err = dbQueries.CreatePost(ctx, database.CreatePostParams{Title: item.Title, Url: item.Link, Description: sql.NullString{String: "item.Description", Valid: true}, PublishedAt: sql.NullTime{Time: t, Valid: true}, FeedID: feed_id})
+		if err != nil {
+			fmt.Println("Err creating post")
+		}
+		// fmt.Printf("  - Title: %s\n", item.Title)
+		// fmt.Printf("    Description: %s\n", item.Description)
+		// fmt.Printf("    Link: %s\n", item.Link)
+		// fmt.Printf("    PubDate: %s\n", item.PubDate)
 	}
 	fmt.Println("----------------------------------------------------------------------------------------------")
 }
@@ -174,7 +183,7 @@ func LoopAndFetch(dbQueries *database.Queries, ctx context.Context) {
 		}
 	
 		for _, feed := range feeds {
-			FetchFeed(feed.Url.String)
+			FetchFeed(feed.Url.String, feed.ID, dbQueries, ctx)
 		}
 	
 		time.Sleep(4 * time.Second)

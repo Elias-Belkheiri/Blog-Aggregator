@@ -78,11 +78,11 @@ func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
 }
 
 const getNextFeedsToFetch = `-- name: GetNextFeedsToFetch :many
-SELECT id, name, url, created_at, updated_at, last_fetched_at FROM feeds ORDER BY last_fetched_at NULLS FIRST, last_fetched_at ASC
+SELECT id, name, url, created_at, updated_at, last_fetched_at FROM feeds ORDER BY last_fetched_at NULLS FIRST, last_fetched_at ASC LIMIT $1
 `
 
-func (q *Queries) GetNextFeedsToFetch(ctx context.Context) ([]Feed, error) {
-	rows, err := q.db.QueryContext(ctx, getNextFeedsToFetch)
+func (q *Queries) GetNextFeedsToFetch(ctx context.Context, limit int32) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, getNextFeedsToFetch, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -112,11 +112,11 @@ func (q *Queries) GetNextFeedsToFetch(ctx context.Context) ([]Feed, error) {
 }
 
 const markFeedAsFetched = `-- name: MarkFeedAsFetched :one
-UPDATE feeds SET last_fetched_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP RETURNING id, name, url, created_at, updated_at, last_fetched_at
+UPDATE feeds SET last_fetched_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = $1 RETURNING id, name, url, created_at, updated_at, last_fetched_at
 `
 
-func (q *Queries) MarkFeedAsFetched(ctx context.Context) (Feed, error) {
-	row := q.db.QueryRowContext(ctx, markFeedAsFetched)
+func (q *Queries) MarkFeedAsFetched(ctx context.Context, id string) (Feed, error) {
+	row := q.db.QueryRowContext(ctx, markFeedAsFetched, id)
 	var i Feed
 	err := row.Scan(
 		&i.ID,
