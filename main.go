@@ -21,7 +21,7 @@ func main() {
 	ctx := context.Background()
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file") 
 	}
 
 
@@ -37,6 +37,8 @@ func main() {
 	
 	r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
 	r.Get("/v1/feeds", controllers.GetFeeds(dbQueries, ctx))
+
+	r.Get("/v1/posts", models.MiddlewareAuth(controllers.GetPostsByUser, ctx, dbQueries))
 
 	go controllers.LoopAndFetch(dbQueries, ctx)
 

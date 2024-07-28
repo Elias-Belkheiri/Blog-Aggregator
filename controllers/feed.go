@@ -144,27 +144,6 @@ func FetchFeed(url string, feed_id string, dbQueries *database.Queries, ctx cont
 	}
 
 	return rss.Channel.Items, nil
-
-	// fmt.Printf("Title: %s\n", rss.Channel.Title)
-	// fmt.Printf("Description: %s\n", rss.Channel.Description)
-	// fmt.Printf("Link: %s\n", rss.Channel.Link)
-	// fmt.Printf("Last Build Date: %s\n", rss.Channel.LastBuildDate)
-	// fmt.Println("Items:")
-	// for _, item := range rss.Channel.Items {
-	// 	t, err := time.Parse(item.PubDate, time.RFC3339)
-	// 	if err != nil {
-	// 		fmt.Println("Err parsing time")
-	// 		return
-	// 	}
-		// if err != nil {
-		// 	fmt.Println("Err creating post")
-		// }
-		// fmt.Printf("  - Title: %s\n", item.Title)
-		// fmt.Printf("    Description: %s\n", item.Description)
-		// fmt.Printf("    Link: %s\n", item.Link)
-		// fmt.Printf("    PubDate: %s\n", item.PubDate)
-	// }
-	// fmt.Println("----------------------------------------------------------------------------------------------")
 }
 
 func LoopAndFetch(dbQueries *database.Queries, ctx context.Context) {
@@ -193,19 +172,11 @@ func LoopAndFetch(dbQueries *database.Queries, ctx context.Context) {
 			}
 
 			for _, item := range items {
-				t, err := time.Parse(item.PubDate, time.RFC3339)
-				if err != nil {
-					fmt.Println("Err parsing time")
-					return
-				}
-				dbQueries.CreatePost(ctx, database.CreatePostParams{
-					Title:       		item.Title,
-					Description: 		sql.NullString{item.Description, true},
-					Url:        		item.Link,
-					PublishedAt:     	sql.NullTime{t, true},
-					FeedID:      		feed.ID,
-				})
-			
+				CreatePost(dbQueries, ctx, item, feed)
+				fmt.Printf("  - Title: %s\n", item.Title)
+				fmt.Printf("    Description: %s\n", item.Description)
+				fmt.Printf("    Link: %s\n", item.Link)
+				fmt.Printf("    PubDate: %s\n", item.PubDate)
 			}
 		}
 	
