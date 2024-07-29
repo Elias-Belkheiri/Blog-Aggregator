@@ -1,10 +1,10 @@
 -- name: CreateUser :one
-INSERT INTO users (id, name, created_at, updated_at, apikey)
-VALUES ($1, $2, $3, $4, encode(sha256(random()::text::bytea), 'hex'))
+INSERT INTO users (id, username, email, password, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING *;
 
 -- name: GetUser :one
-SELECT * FROM users WHERE apikey = $1;
+SELECT * FROM users WHERE username = $1;
 
 -- name: GetUsers :many
 SELECT * FROM users;

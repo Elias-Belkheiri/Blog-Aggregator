@@ -3,15 +3,16 @@ package controllers
 import (
 	// "database/sql"
 	"context"
-	// "database/sql"
 	"encoding/json"
 	"fmt"
 	"internal/database"
 	"io"
-	"github.com/Elias-Belkheiri/blog_aggregator/utils"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/Elias-Belkheiri/blog_aggregator/utils"
+
 	// "strings"
 	"time"
 	// "github.com/Elias-Belkheiri/blog_aggregator/models"
@@ -68,13 +69,10 @@ func AddUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 	userCreated, err := dbQueries.CreateUser(ctx, user)
 	if err != nil {
 		fmt.Println("Err creating user")
-		// fmt.Println(user.Name)
-		// fmt.Println(user.ID)
-		// fmt.Println(user.CreatedAt)
-		// fmt.Println(user.UpdatedAt)
 		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
+
 
 	userJson, err := json.Marshal(userCreated)
 	if err != nil {

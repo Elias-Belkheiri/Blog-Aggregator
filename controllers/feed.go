@@ -76,8 +76,17 @@ func AddFeed(w http.ResponseWriter, r *http.Request, user database.User, dbQueri
 	feedCreated, err := dbQueries.CreateFeed(ctx, feed)
 	if err != nil {
 		fmt.Println("Err creating feed")
-		utils.ErrHandler(w, 500, "Internal Server Error")
-		return
+		// utils.ErrHandler(w, 500, "Internal Server Error")
+		// return
+	}
+
+	if err != nil {
+		feedCreated, err = dbQueries.GetFeedByUri(ctx, feed.Url)
+		if err != nil {
+			fmt.Println("Err getting feed by uri")
+			utils.ErrHandler(w, 500, "Internal Server Error")
+			return
+		}
 	}
 
 	feedFollow.ID = uuid.New().String()
@@ -173,10 +182,10 @@ func LoopAndFetch(dbQueries *database.Queries, ctx context.Context) {
 
 			for _, item := range items {
 				CreatePost(dbQueries, ctx, item, feed)
-				fmt.Printf("  - Title: %s\n", item.Title)
-				fmt.Printf("    Description: %s\n", item.Description)
-				fmt.Printf("    Link: %s\n", item.Link)
-				fmt.Printf("    PubDate: %s\n", item.PubDate)
+				// fmt.Printf("  - Title: %s\n", item.Title)
+				// fmt.Printf("    Description: %s\n", item.Description)
+				// fmt.Printf("    Link: %s\n", item.Link)
+				// fmt.Printf("    PubDate: %s\n", item.PubDate)
 			}
 		}
 	

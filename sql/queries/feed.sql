@@ -4,6 +4,9 @@ INSERT INTO feeds (id, name, url, created_at, updated_at) VALUES ($1, $2, $3, $4
 -- name: GetFeeds :many
 SELECT * FROM feeds;
 
+-- name: GetFeedByUrl :one
+SELECT * FROM feeds WHERE url = $1;
+
 -- name: GetNextFeedsToFetch :many
 SELECT * FROM feeds ORDER BY last_fetched_at NULLS FIRST, last_fetched_at ASC LIMIT $1;
 

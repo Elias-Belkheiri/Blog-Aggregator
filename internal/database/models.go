@@ -39,8 +39,9 @@ type Post struct {
 
 type User struct {
 	ID        string
-	Name      string
+	Username  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	Apikey    sql.NullString
+	Email     string
+	Password  string
 }

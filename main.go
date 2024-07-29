@@ -16,6 +16,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+
 func main() {
 	r := chi.NewRouter()
 	ctx := context.Background()
@@ -33,7 +34,7 @@ func main() {
 	dbQueries := database.New(db)
 	
 	r.Get("/v1/users", models.MiddlewareAuth(controllers.GetUser, ctx, dbQueries))
-	r.Post("/v1/users", controllers.AddUserHandler(dbQueries, ctx))
+	r.Post("/v1/register", controllers.AddUserHandler(dbQueries, ctx))
 	
 	r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
 	r.Get("/v1/feeds", controllers.GetFeeds(dbQueries, ctx))

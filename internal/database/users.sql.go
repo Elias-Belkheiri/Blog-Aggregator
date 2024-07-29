@@ -7,19 +7,20 @@ package database
 
 import (
 	"context"
-	"database/sql"
 	"time"
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, name, created_at, updated_at, apikey)
-VALUES ($1, $2, $3, $4, encode(sha256(random()::text::bytea), 'hex'))
-RETURNING id, name, created_at, updated_at, apikey
+INSERT INTO users (id, username, email, password, created_at, updated_at)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, username, created_at, updated_at, email, password
 `
 
 type CreateUserParams struct {
 	ID        string
-	Name      string
+	Username  string
+	Email     string
+	Password  string
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -27,40 +28,44 @@ type CreateUserParams struct {
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.ID,
-		arg.Name,
+		arg.Username,
+		arg.Email,
+		arg.Password,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 	)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.Username,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Apikey,
+		&i.Email,
+		&i.Password,
 	)
 	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, name, created_at, updated_at, apikey FROM users WHERE apikey = $1
+SELECT id, username, created_at, updated_at, email, password FROM users WHERE username = $1
 `
 
-func (q *Queries) GetUser(ctx context.Context, apikey sql.NullString) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, apikey)
+func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, username)
 	var i User
 	err := row.Scan(
 		&i.ID,
-		&i.Name,
+		&i.Username,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Apikey,
+		&i.Email,
+		&i.Password,
 	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, name, created_at, updated_at, apikey FROM users
+SELECT id, username, created_at, updated_at, email, password FROM users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -74,10 +79,11 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 		var i User
 		if err := rows.Scan(
 			&i.ID,
-			&i.Name,
+			&i.Username,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.Apikey,
+			&i.Email,
+			&i.Password,
 		); err != nil {
 			return nil, err
 		}
