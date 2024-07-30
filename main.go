@@ -9,7 +9,7 @@ import (
 	"os"
 
 	"github.com/Elias-Belkheiri/blog_aggregator/controllers"
-	"github.com/Elias-Belkheiri/blog_aggregator/models"
+	// "github.com/Elias-Belkheiri/blog_aggregator/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -33,15 +33,16 @@ func main() {
 
 	dbQueries := database.New(db)
 	
-	r.Get("/v1/users", models.MiddlewareAuth(controllers.GetUser, ctx, dbQueries))
+	// r.Get("/v1/users", models.MiddlewareAuth(controllers.GetUser, ctx, dbQueries))
 	r.Post("/v1/register", controllers.AddUserHandler(dbQueries, ctx))
+	r.Post("/v1/login", controllers.LogUserInHandler(dbQueries, ctx))
 	
-	r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
-	r.Get("/v1/feeds", controllers.GetFeeds(dbQueries, ctx))
+	// r.Post("/v1/feeds", models.MiddlewareAuth(controllers.AddFeed, ctx, dbQueries))
+	// r.Get("/v1/feeds", controllers.GetFeeds(dbQueries, ctx))
 
-	r.Get("/v1/posts", models.MiddlewareAuth(controllers.GetPostsByUser, ctx, dbQueries))
+	// r.Get("/v1/posts", models.MiddlewareAuth(controllers.GetPostsByUser, ctx, dbQueries))
 
-	go controllers.LoopAndFetch(dbQueries, ctx)
+	// go controllers.LoopAndFetch(dbQueries, ctx)
 
 // 	r.Post("/v1/feedFollows", models.MiddlewareAuth(controllers.AddFeedFollows, ctx, dbQueries))
 // 	r.Delete("/v1/feedFollows/{feedFollowsID}", models.MiddlewareAuth(controllers.RemoveFeedFollows, ctx, dbQueries))

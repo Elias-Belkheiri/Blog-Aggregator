@@ -1,22 +1,22 @@
 package utils
 
 import (
+	// "os"
+	// "time"
+
 	"os"
-	"fmt"
+
 	"github.com/golang-jwt/jwt"
 )
 
-func CreateToken(username string) string{
-	var secret = (os.Getenv("JWT_SECRET"))
-	claims := jwt.NewWithClaims(jwt.SigningMethodES256, jwt.MapClaims{
-		"username": username,
-	})
 
-	token, err := claims.SignedString([]byte(secret))
-	if err != nil {
-		fmt.Println("Error creating token")
-		panic(err)
-	}
 
-	return token
+func CreateToken(username string) (string, error) {
+	var secretKey = []byte(os.Getenv("JWT_SECRET"))
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, 
+        jwt.MapClaims{ 
+        "username": username, 
+        })
+
+    return token.SignedString(secretKey)
 }

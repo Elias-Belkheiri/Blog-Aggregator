@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-
+	"golang.org/x/crypto/bcrypt"
 	"github.com/Elias-Belkheiri/blog_aggregator/utils"
 
 	// "strings"
@@ -45,6 +45,12 @@ func AddUserHandler(dbQueries *database.Queries, ctx context.Context) http.Handl
 	}
 }
 
+func LogUserInHandler(dbQueries *database.Queries, ctx context.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		LogUserIn(w, r, dbQueries, ctx)
+	}
+}
+
 func AddUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
 	var user database.CreateUserParams
 	body, err := io.ReadAll(r.Body)
@@ -62,10 +68,17 @@ func AddUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 		return
 	}
 
-	// check if the user.name is invalid
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+	if err != nil {
+		fmt.Println("Err creating hashing password")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
 	user.ID = uuid.New().String()
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
+	user.Password = string(hashedPassword)
+
 	userCreated, err := dbQueries.CreateUser(ctx, user)
 	if err != nil {
 		fmt.Println("Err creating user")
@@ -73,7 +86,7 @@ func AddUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 		return
 	}
 
-
+	userCreated.Password = ""
 	userJson, err := json.Marshal(userCreated)
 	if err != nil {
 		fmt.Println("Err marshaling user")
@@ -81,6 +94,46 @@ func AddUser(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries
 		return
 	}
 	w.Write(userJson)
+}
+
+func LogUserIn(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
+	var user database.CreateUserParams
+	body, err := io.ReadAll(r.Body)
+
+	if err != nil {
+		fmt.Println("Err reading request body")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
+
+	err = json.Unmarshal(body, &user)
+	if err != nil {
+		fmt.Println("Err unmarshaling request body")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
+
+	userRetrieved, err := dbQueries.GetUser(ctx, user.Username)
+	if err != nil {
+		fmt.Println("Err getting user")
+		utils.ErrHandler(w, 401, "Invalid Username")
+		return
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(userRetrieved.Password), []byte(user.Password))
+	if err != nil {
+		fmt.Println("Err comparing passwords")
+		utils.ErrHandler(w, 401, "Invalid Password")
+		return
+	}
+
+	token, err := utils.CreateToken(userRetrieved.Username)
+	if err != nil {
+		fmt.Println("Err generating token")
+		utils.ErrHandler(w, 500, "Internal Server Error")
+		return
+	}
+	w.Write([]byte(token))
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
