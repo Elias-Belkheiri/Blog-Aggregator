@@ -133,7 +133,9 @@ func LogUserIn(w http.ResponseWriter, r *http.Request, dbQueries *database.Queri
 		utils.ErrHandler(w, 500, "Internal Server Error")
 		return
 	}
-	w.Write([]byte(token))
+	w.Header().Set("Authorization", "Bearer " + token)
+	fmt.Println(token)
+	w.Write([]byte(userRetrieved.Username))
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request, dbQueries *database.Queries, ctx context.Context) {
