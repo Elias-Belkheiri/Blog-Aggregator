@@ -13,9 +13,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"github.com/Elias-Belkheiri/blog_aggregator/utils"
 
-	// "strings"
 	"time"
-	// "github.com/Elias-Belkheiri/blog_aggregator/models"
 	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
